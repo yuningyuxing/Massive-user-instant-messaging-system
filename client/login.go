@@ -17,7 +17,7 @@ func login(userId int, userPwd string) (err error) {
 	conn, err := net.Dial("tcp", "0.0.0.0:8889")
 	if err != nil {
 		fmt.Println("net.Dial err=", err)
-		return
+		return err
 	}
 	//延时关闭链接
 	defer conn.Close()
@@ -59,6 +59,11 @@ func login(userId int, userPwd string) (err error) {
 		fmt.Println("conn.Write(bytes) fail=", err)
 		return err
 	}
-	fmt.Printf("客户端，发送消息的长度=%d 内容=%s\n", len(data), string(data))
+	//上面传输的是 我们要发送的信息的长度 本次是发送信息本身
+	_, err = conn.Write(data)
+	if err != nil {
+		fmt.Println("conn.Write(data) fail=", err)
+		return
+	}
 	return nil
 }
