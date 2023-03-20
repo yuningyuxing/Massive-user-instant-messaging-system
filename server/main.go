@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+	"net"
+)
+
+func process(conn net.Conn) {
+	//注意延时关闭conn
+	defer conn.Close()
+	for {
+		buf := make([]byte, 8192)
+		fmt.Println("读取客户端发送的数据...")
+		//读取客户端数据 这里我们只读到:4 读多了会有空白
+		n, err := conn.Read(buf[:4])
+		if n != 4 || err != nil {
+			fmt.Println("conn.Read err=", err)
+			return
+		}
+		//输出读到的信息即可
+		fmt.Println("读到的buf=", buf[:4])
+	}
+
+}
+
+func main() {
+	//提示信息
+	fmt.Println("服务器在8889端口监听...")
+	//调用net.Listen来监听指定服务器的端口
+	listen, err := net.Listen("tcp", "0.0.0.0:8889")
+	defer listen.Close()
+	if err != nil {
+		fmt.Println("net.Listen err=", err)
+		return
+	}
+	//循环等待客户端链接
+	for {
+		fmt.Println("等待客户端来链接服务器....")
+		//在这里一直等待 没有就阻塞
+		conn, err := listen.Accept()
+		if err != nil {
+			fmt.Println("listen.Accept err=", err)
+			return
+		}
+		//为每一个客户端 开一个协程去服务
+		go process(conn)
+	}
+}
