@@ -5,9 +5,15 @@ import (
 	"os"
 )
 
+// 定义两个用户 一个表示用户id,一个表示用户密码
+var userId int
+var userPwd string
+
 func main() {
 
+	//接受用户选择
 	var key int
+	//判断是否还继续显示菜单
 	var loop = true
 	for loop {
 		fmt.Println("----------------欢迎登陆多人聊天系统----------------")
@@ -32,6 +38,19 @@ func main() {
 	}
 	//根据用户的输入，显示新的提示信息
 	if key == 1 {
-
+		//说明用户要登陆
+		fmt.Println("请输入用户的id：")
+		fmt.Scanln(&userId) //这里注意输入细节 如果是用Scanf要+\n用来吞换行
+		fmt.Println("请输入用户密码：")
+		fmt.Scanln(&userPwd)
+		//登陆函数写到另外一个文件
+		err := login(userId, userPwd)
+		if err != nil {
+			fmt.Println("登陆失败")
+		} else {
+			fmt.Println("登陆成功")
+		}
+	} else if key == 2 {
+		fmt.Println("用户进行注册的逻辑")
 	}
 }
