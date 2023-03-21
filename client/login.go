@@ -25,7 +25,7 @@ func login(userId int, userPwd string) (err error) {
 	//申请一个用来描述消息信息的结构体
 	var mes message.Message
 	//消息类型
-	mes.Type = message.LoginReMesType
+	mes.Type = message.LoginMesType
 
 	//用来存储用户的具体信息
 	var loginMes message.LoginMes
@@ -46,7 +46,6 @@ func login(userId int, userPwd string) (err error) {
 		fmt.Println("json.Marshal err=", err)
 		return err
 	}
-
 	//因为我们这里要发送信息长度，从而确保信息不会丢失
 	var pkgLen uint32
 	pkgLen = uint32(len(data))
@@ -65,5 +64,18 @@ func login(userId int, userPwd string) (err error) {
 		fmt.Println("conn.Write(data) fail=", err)
 		return
 	}
-	return nil
+	//现在我们要处理服务器端返回的消息
+	mes, err = readPkg(conn)
+	if err != nil {
+		fmt.Println("readPkg(conn) err=", err)
+		return
+	}
+	var loginResMes message.LoginResMes
+	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
+	if loginResMes.Code == 200 {
+		fmt.Println("登陆成功")
+	} else if loginResMes.Code == 500 {
+		fmt.Println(loginResMes.Error)
+	}
+	return
 }

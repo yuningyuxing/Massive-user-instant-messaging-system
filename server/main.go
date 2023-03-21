@@ -34,6 +34,78 @@ func readPkg(conn net.Conn) (mes message.Message, err error) {
 	}
 	return
 }
+
+func writePkg(conn net.Conn, data []byte) (err error) {
+	var pkgLen uint32
+	pkgLen = uint32(len(data))
+	var buf [4]byte
+	//将长度写入byte切片
+	binary.BigEndian.PutUint32(buf[:4], pkgLen)
+	n, err := conn.Write(buf[:4])
+	if n != 4 || err != nil {
+		fmt.Println("conn.Write(bytes) fail=", err)
+		return
+	}
+	n, err = conn.Write(data)
+	if n != int(pkgLen) || err != nil {
+		fmt.Println("conn.Write(bytes) fail=", err)
+		return
+	}
+	return
+}
+
+// 这个函数用来处理登陆
+func serverProcessLogin(conn net.Conn, mes *message.Message) (err error) {
+	var loginMes message.LoginMes
+	//从mes取出mes.Data 并反序列化成LoginMes
+	err = json.Unmarshal([]byte(mes.Data), &loginMes)
+	if err != nil {
+		fmt.Println("json.Unmarshal fail err=", err)
+		return
+	}
+	//现在我们要申明一个用来返回登陆信息的结构体
+	var resMes message.Message
+	resMes.Type = message.LoginReMesType
+	//这里存的是返回信息的信息本身
+	var loginResMes message.LoginResMes
+	if loginMes.UserId == 100 && loginMes.UserPwd == "123456" {
+		//我们规定状态码200 表示合法登陆
+		loginResMes.Code = 200
+	} else {
+		//状态码500 表示不合法登陆
+		loginResMes.Code = 500
+		loginResMes.Error = "该用户不存在，请注册后再使用"
+	}
+	//先将loginResMes序列化成切片后再转成string从而作为数据本身赋给resMes
+	data, err := json.Marshal(loginResMes)
+	if err != nil {
+		fmt.Println("json.Marshal(loginResMes) fail=", err)
+		return
+	}
+	resMes.Data = string(data)
+	//再将resMes序列化后发送回去
+	data, err = json.Marshal(resMes)
+	if err != nil {
+		fmt.Println("json.Marshal(resMes) fail=", err)
+		return
+	}
+	//发送data回客户端
+	err = writePkg(conn, data)
+	return
+}
+
+// 本函数 根据客户端发送消息种类不同，决定调用那个函数来处理
+func serverProcessMes(conn net.Conn, mes *message.Message) (err error) {
+	//我们用switch实现业务逻辑
+	switch mes.Type {
+	case message.LoginMesType: //处理登陆
+		err = serverProcessLogin(conn, mes)
+	case message.RegisterMesType: //处理注册
+	default:
+		fmt.Println("此类消息类型不存在，无法处理.....")
+	}
+	return
+}
 func process(conn net.Conn) {
 	//注意延时关闭conn
 	defer conn.Close()
@@ -49,8 +121,11 @@ func process(conn net.Conn) {
 				return
 			}
 		}
-		//打印接受的信息 是一个结构体
-		fmt.Println("mes=", mes)
+		//将接受的信息 传到一个函数里，函数用来区别信息类型 并做出对应操作
+		err = serverProcessMes(conn, &mes)
+		if err != nil {
+			return
+		}
 	}
 
 }

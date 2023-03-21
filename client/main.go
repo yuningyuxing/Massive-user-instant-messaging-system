@@ -46,9 +46,9 @@ func main() {
 		//登陆函数写到另外一个文件
 		err := login(userId, userPwd)
 		if err != nil {
-			fmt.Println("登陆失败")
+			//fmt.Println("登陆失败")
 		} else {
-			fmt.Println("登陆成功")
+			//fmt.Println("登陆成功")
 		}
 	} else if key == 2 {
 		fmt.Println("用户进行注册的逻辑")
