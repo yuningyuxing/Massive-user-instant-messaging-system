@@ -3,7 +3,6 @@ package main
 //本文件主要用来构建login函数
 import (
 	"bao/common/message"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -46,24 +45,8 @@ func login(userId int, userPwd string) (err error) {
 		fmt.Println("json.Marshal err=", err)
 		return err
 	}
-	//因为我们这里要发送信息长度，从而确保信息不会丢失
-	var pkgLen uint32
-	pkgLen = uint32(len(data))
-	var buf [4]byte
-	//我们为了将数字转换成切片 这里用PutUint32 但注意我们接受参数要uint32所以转化一下
-	binary.BigEndian.PutUint32(buf[0:4], pkgLen)
-	//此时我们就获得了一个描述信息长度的byte切片buf 我们将他传过去 这里传4个字节 因为uint32用了四个字节
-	n, err := conn.Write(buf[:4])
-	if n != 4 || err != nil {
-		fmt.Println("conn.Write(bytes) fail=", err)
-		return err
-	}
-	//上面传输的是 我们要发送的信息的长度 本次是发送信息本身
-	_, err = conn.Write(data)
-	if err != nil {
-		fmt.Println("conn.Write(data) fail=", err)
-		return
-	}
+	writePkg(conn, data)
+
 	//现在我们要处理服务器端返回的消息
 	mes, err = readPkg(conn)
 	if err != nil {
