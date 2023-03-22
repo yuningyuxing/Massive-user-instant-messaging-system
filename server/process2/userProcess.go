@@ -2,6 +2,7 @@ package process2
 
 import (
 	"bao/common/message"
+	"bao/server/model"
 	"bao/server/utils"
 	"encoding/json"
 	"fmt"
@@ -26,13 +27,30 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	resMes.Type = message.LoginReMesType
 	//这里存的是返回信息的信息本身
 	var loginResMes message.LoginResMes
-	if loginMes.UserId == 100 && loginMes.UserPwd == "123456" {
-		//我们规定状态码200 表示合法登陆
-		loginResMes.Code = 200
+
+	//if loginMes.UserId == 100 && loginMes.UserPwd == "123456" {
+	//	//我们规定状态码200 表示合法登陆
+	//	loginResMes.Code = 200
+	//} else {
+	//	//状态码500 表示不合法登陆
+	//	loginResMes.Code = 500
+	//	loginResMes.Error = "该用户不存在，请注册后再使用"
+	//}
+	user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.UserPwd)
+	if err != nil {
+		if err == model.ERROR_USER_NOTEXISTS {
+			loginResMes.Code = 500
+			loginResMes.Error = err.Error()
+		} else if err == model.ERROR_USER_PWD {
+			loginResMes.Code = 403
+			loginResMes.Error = err.Error()
+		} else {
+			loginResMes.Code = 505
+			loginResMes.Error = "服务器内部错误..."
+		}
 	} else {
-		//状态码500 表示不合法登陆
-		loginResMes.Code = 500
-		loginResMes.Error = "该用户不存在，请注册后再使用"
+		loginResMes.Code = 200
+		fmt.Println(user, "登陆成功")
 	}
 	//先将loginResMes序列化成切片后再转成string从而作为数据本身赋给resMes
 	data, err := json.Marshal(loginResMes)

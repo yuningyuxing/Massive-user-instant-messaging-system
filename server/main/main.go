@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bao/server/model"
 	"fmt"
 	"net"
+	"time"
 )
 
 func process(conn net.Conn) {
@@ -18,7 +20,16 @@ func process(conn net.Conn) {
 	}
 }
 
+// 本函数用来完成对UserDao的初始化任务
+func initUserDao() {
+	//注意我们一定先初始化连接池才能初始化UserDao
+	model.MyUserDao = model.NewUserDao(pool)
+}
+
 func main() {
+	//服务器启动时，我们去初始化redis链接池
+	initPool("127.0.0.1:6379", 16, 0, 300*time.Second)
+	initUserDao()
 	//提示信息
 	fmt.Println("服务器在8889端口监听...")
 	//调用net.Listen来监听指定服务器的端口

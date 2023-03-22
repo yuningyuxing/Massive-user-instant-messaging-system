@@ -50,6 +50,7 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 	}
 	//注意因为我们用来描述消息的结构体.Data是string类型 而序列化后是type切片 所以我们转化一下
 	mes.Data = string(data)
+	//fmt.Println(mes.Data)
 	//然后将mes序列化
 	data, err = json.Marshal(mes)
 	if err != nil {
@@ -73,7 +74,7 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 		for {
 			ShowMenu()
 		}
-	} else if loginResMes.Code == 500 {
+	} else {
 		fmt.Println(loginResMes.Error)
 	}
 	return
