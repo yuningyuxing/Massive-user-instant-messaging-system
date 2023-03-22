@@ -79,3 +79,52 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 	}
 	return
 }
+
+// 写一个注册函数  注册逻辑和登录逻辑和大致相同
+func (this *UserProcess) Register(userId int, userPwd string, userName string) (err error) {
+	conn, err := net.Dial("tcp", "127.0.0.1:8889")
+	if err != nil {
+		fmt.Println("net.Dial err=", err)
+		return
+	}
+	defer conn.Close()
+	var mes message.Message
+	mes.Type = message.RegisterMesType
+	var registerMes message.RegisterMes
+	registerMes.User.UserId = userId
+	registerMes.User.UserPwd = userPwd
+	registerMes.User.UserName = userName
+
+	data, err := json.Marshal(registerMes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	mes.Data = string(data)
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	tf := &utils.Transfer{
+		Conn: conn,
+	}
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("注册信息发送错误 err=", err)
+		return
+	}
+	mes, err = tf.ReadPkg()
+	if err != nil {
+		fmt.Println("readPkg(conn) err=", err)
+		return
+	}
+	var registerResMes message.RegisterResMes
+	err = json.Unmarshal([]byte(mes.Data), &registerResMes)
+	if registerResMes.Code == 200 {
+		fmt.Println("注册成功，请前往登陆")
+	} else {
+		fmt.Println(registerResMes.Error)
+	}
+	return
+}

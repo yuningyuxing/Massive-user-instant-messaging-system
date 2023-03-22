@@ -6,9 +6,10 @@ import (
 	"os"
 )
 
-// 定义两个用户 一个表示用户id,一个表示用户密码
+// 定义三个变量 一个表示用户id,一个表示用户密码 一个用户名
 var userId int
 var userPwd string
+var userName string
 
 func main() {
 
@@ -35,7 +36,14 @@ func main() {
 			up.Login(userId, userPwd)
 		case 2:
 			fmt.Println("注册用户")
-			loop = false
+			fmt.Println("请输入用户的id：")
+			fmt.Scanln(&userId) //这里注意输入细节 如果是用Scanf要+\n用来吞换行
+			fmt.Println("请输入用户密码：")
+			fmt.Scanln(&userPwd)
+			fmt.Println("请输入用户的用户名：")
+			fmt.Scanln(&userName)
+			up := process.UserProcess{}
+			up.Register(userId, userPwd, userName)
 		case 3:
 			fmt.Println("退出系统")
 			os.Exit(0)

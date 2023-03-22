@@ -73,3 +73,46 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	err = tf.WritePkg(data)
 	return
 }
+
+// 专门处理注册请求
+func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
+	var registerMes message.RegisterMes
+	err = json.Unmarshal([]byte(mes.Data), &registerMes)
+	if err != nil {
+		fmt.Println("json.Unmarshal fail err=", err)
+		return
+	}
+	var resMes message.Message
+	resMes.Type = message.RegisterResMesType
+	var registerResMes message.RegisterResMes
+	//注意这里为什么要强转呢？  因为我们从客户端发送过来的信息.User虽然样子和我们server的User一样 但本质上他们不是同种结构体需要我们强转类型
+	err = model.MyUserDao.Register((*model.User)(&registerMes.User))
+	if err != nil {
+		if err == model.ERROR_USER_EXISTS {
+			registerResMes.Code = 505
+			registerResMes.Error = model.ERROR_USER_EXISTS.Error()
+		} else {
+			registerResMes.Code = 506
+			registerResMes.Error = "注册发生未知错误..."
+
+		}
+	} else {
+		registerResMes.Code = 200
+	}
+	data, err := json.Marshal(registerResMes)
+	if err != nil {
+		fmt.Println("json.Marshal fail err=", err)
+		return
+	}
+	resMes.Data = string(data)
+	data, err = json.Marshal(resMes)
+	if err != nil {
+		fmt.Println("json.Marshal fail err=", err)
+		return
+	}
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+	err = tf.WritePkg(data)
+	return
+}

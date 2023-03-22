@@ -9,7 +9,7 @@ import (
 var pool *redis.Pool
 
 // 初始化连接池
-func initPool(address string, maxIdle, maxActive int, idleTimeout time.Duration) {
+func initPool(address string, maxIdle int, maxActive int, idleTimeout time.Duration) {
 	pool = &redis.Pool{
 		MaxIdle:     maxIdle,     //最大空闲链接数
 		MaxActive:   maxActive,   //表示和数据库的最大链接数
