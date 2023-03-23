@@ -22,7 +22,7 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 	//下面要开始定协议
 	//1.链接到服务器
 	//客户端申请向目标建立链接
-	conn, err := net.Dial("tcp", "0.0.0.0:8889")
+	conn, err := net.Dial("tcp", "120.55.98.165:8889")
 	if err != nil {
 		fmt.Println("net.Dial err=", err)
 		return err
@@ -99,7 +99,7 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 
 // 写一个注册函数  注册逻辑和登录逻辑和大致相同
 func (this *UserProcess) Register(userId int, userPwd string, userName string) (err error) {
-	conn, err := net.Dial("tcp", "127.0.0.1:8889")
+	conn, err := net.Dial("tcp", "120.55.98.165:8889")
 	if err != nil {
 		fmt.Println("net.Dial err=", err)
 		return

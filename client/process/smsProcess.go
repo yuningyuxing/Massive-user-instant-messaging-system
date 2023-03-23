@@ -71,6 +71,4 @@ func (this *SmsProcess) SendGroupOnlineMes(content string, userId int) (err erro
 		return
 	}
 	return
-
-	return
 }
