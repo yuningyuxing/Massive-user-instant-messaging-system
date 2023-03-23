@@ -9,6 +9,13 @@ const (
 	RegisterMesType = "RegisterMes"
 	//表示该信息为返回注册类信息情况的信息
 	RegisterResMesType = "RegisterResMes"
+	//表示通知某用户上线的消息
+	NotifyUserStatusMesType = "NotifyUserStatusMes"
+)
+const (
+	UserOnline = iota
+	UserOffline
+	UserBusyStatus
 )
 
 type Message struct {
@@ -21,8 +28,9 @@ type LoginMes struct {
 	UserName string `json:"userName"` //用户名
 }
 type LoginResMes struct {
-	Code  int    `json:"code"'` //返回状态码 500表示用户未错误，200表示登陆成功
-	Error string `json:"error"` //返回错误信息
+	Code   int    `json:"code"'` //返回状态码 500表示用户未错误，200表示登陆成功
+	UserId []int  //增加字段 保存用户id的切片
+	Error  string `json:"error"` //返回错误信息
 }
 
 // 定义一下注册的消息类型
@@ -34,4 +42,8 @@ type RegisterMes struct {
 type RegisterResMes struct {
 	Code  int    `json:"code"` //状态码400表示该用户已经存在  200表示注册成功
 	Error string `json:"error"`
+}
+type NotifyUserStatusMes struct {
+	UserId int `json:"userId"`
+	Status int `json:"status"`
 }

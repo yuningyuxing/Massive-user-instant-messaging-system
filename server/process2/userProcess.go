@@ -10,7 +10,8 @@ import (
 )
 
 type UserProcess struct {
-	Conn net.Conn
+	Conn   net.Conn
+	UserId int
 }
 
 // 给结构体绑定一个serverProcessLogin 专门处理登陆请求
@@ -27,15 +28,6 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	resMes.Type = message.LoginReMesType
 	//这里存的是返回信息的信息本身
 	var loginResMes message.LoginResMes
-
-	//if loginMes.UserId == 100 && loginMes.UserPwd == "123456" {
-	//	//我们规定状态码200 表示合法登陆
-	//	loginResMes.Code = 200
-	//} else {
-	//	//状态码500 表示不合法登陆
-	//	loginResMes.Code = 500
-	//	loginResMes.Error = "该用户不存在，请注册后再使用"
-	//}
 	user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.UserPwd)
 	if err != nil {
 		if err == model.ERROR_USER_NOTEXISTS {
@@ -50,7 +42,16 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 		}
 	} else {
 		loginResMes.Code = 200
-		fmt.Println(user, "登陆成功")
+		//此时因为登陆成功 我们要将用户放到userMgr(用户在线列表)中
+		this.UserId = loginMes.UserId
+		userMgr.AddOnlienUser(this)
+		//通知其他用户我上线了
+		this.NotifyOthersOnlineUser(loginMes.UserId)
+		//将当前在线用户的id 放入到loginResMes.UsersId 遍历userMgr.onlineUsers
+		for id, _ := range userMgr.onlineUsers {
+			loginResMes.UserId = append(loginResMes.UserId, id)
+		}
+		fmt.Println(user.UserName, "登陆成功")
 	}
 	//先将loginResMes序列化成切片后再转成string从而作为数据本身赋给resMes
 	data, err := json.Marshal(loginResMes)
@@ -115,4 +116,45 @@ func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error)
 	}
 	err = tf.WritePkg(data)
 	return
+}
+
+// 通知所有在线用户 我上线了
+func (this *UserProcess) NotifyOthersOnlineUser(userId int) {
+	//注意这个函数的一些细节 首先我们为了实现能遍历到所有当前在线的客户端 我们遍历得到的是UserProcess 是一个客户端 包含他的链接
+	//所以此时我们调用up.Not 的时候 就用的时要发送到客户端的链接 并且我们传的参数时自己 因为要给别人说为上线了
+	for id, up := range userMgr.onlineUsers {
+		if id == userId {
+			continue
+		}
+		up.NotifyMeOnline(userId)
+	}
+}
+
+// 这个函数的逻辑比较简单 就是把自己上线的消息 封装在结构体里 也就是经典的mes 然后序列化传过去即可
+func (this *UserProcess) NotifyMeOnline(UserId int) {
+	var mes message.Message
+	mes.Type = message.NotifyUserStatusMesType
+	var notifyUserStatusMes message.NotifyUserStatusMes
+	notifyUserStatusMes.UserId = UserId
+	notifyUserStatusMes.Status = message.UserOnline
+
+	data, err := json.Marshal(notifyUserStatusMes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	mes.Data = string(data)
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("NotifyMeOnline err=", err)
+		return
+	}
 }
