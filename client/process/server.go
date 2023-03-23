@@ -16,8 +16,7 @@ import (
 
 // 显示登陆成功后的界面
 func ShowMenu() {
-	fmt.Println("-------恭喜xxx登陆成功-------")
-	fmt.Println("-------1. 显示在线用户列表-------")
+	fmt.Println("----------1. 显示在线用户列表-------")
 	fmt.Println("-------2. 发送消息-------")
 	fmt.Println("-------3. 信息列表-------")
 	fmt.Println("-------4. 退出系统-------")
@@ -30,6 +29,11 @@ func ShowMenu() {
 		outputOnlineUser()
 	case 2:
 		fmt.Println("发送消息")
+		fmt.Println("请输入你要群发的消息:")
+		var content string
+		fmt.Scanln(&content)
+		smsProcess := SmsProcess{}
+		smsProcess.SendGroupMes(content)
 	case 3:
 		fmt.Println("消息列表")
 	case 4:
@@ -59,6 +63,8 @@ func serverProcessMes(conn net.Conn) {
 			json.Unmarshal([]byte(mes.Data), &notifyUserStatusMes)
 			updateUserStatus(&notifyUserStatusMes)
 			fmt.Println(notifyUserStatusMes.UserId, "上线了")
+		case message.SmsMesType:
+			outputGroupMes(&mes)
 		default:
 			fmt.Println("服务器端返回了未知的消息类型")
 		}

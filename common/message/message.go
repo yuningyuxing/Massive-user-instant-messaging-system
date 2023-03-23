@@ -11,6 +11,7 @@ const (
 	RegisterResMesType = "RegisterResMes"
 	//表示通知某用户上线的消息
 	NotifyUserStatusMesType = "NotifyUserStatusMes"
+	SmsMesType              = "SmsMesType"
 )
 const (
 	UserOnline = iota
@@ -46,4 +47,8 @@ type RegisterResMes struct {
 type NotifyUserStatusMes struct {
 	UserId int `json:"userId"`
 	Status int `json:"status"`
+}
+type SmsMes struct {
+	Content string `json:"content"`
+	User
 }
