@@ -11,7 +11,10 @@ const (
 	RegisterResMesType = "RegisterResMes"
 	//表示通知某用户上线的消息
 	NotifyUserStatusMesType = "NotifyUserStatusMes"
-	SmsMesType              = "SmsMesType"
+	//表示群发消息类型
+	SmsMesType = "SmsMesType"
+	//表示单发消息类型
+	SmsOnlineMesType = "SmsOnlineMes"
 )
 const (
 	UserOnline = iota
@@ -48,7 +51,10 @@ type NotifyUserStatusMes struct {
 	UserId int `json:"userId"`
 	Status int `json:"status"`
 }
+
+// 描述发送的消息
 type SmsMes struct {
 	Content string `json:"content"`
 	User
+	AimUserId int
 }

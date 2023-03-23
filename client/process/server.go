@@ -28,12 +28,29 @@ func ShowMenu() {
 		//fmt.Println("显示在线用户列表")
 		outputOnlineUser()
 	case 2:
-		fmt.Println("发送消息")
-		fmt.Println("请输入你要群发的消息:")
-		var content string
-		fmt.Scanln(&content)
-		smsProcess := SmsProcess{}
-		smsProcess.SendGroupMes(content)
+		fmt.Println("请选择你要发送的消息类型:")
+		fmt.Println("1:私聊")
+		fmt.Println("2.群发")
+		fmt.Scanln(&key)
+		switch key {
+		case 1:
+			fmt.Println("请输入你要发送的好友的Id")
+			var userId int
+			fmt.Scanln(&userId)
+			fmt.Println("请输入你要发送的消息:")
+			var content string
+			fmt.Scanln(&content)
+			smsProcess := SmsProcess{}
+			smsProcess.SendGroupOnlineMes(content, userId)
+		case 2:
+			fmt.Println("请输入你要群发的消息:")
+			var content string
+			fmt.Scanln(&content)
+			smsProcess := SmsProcess{}
+			smsProcess.SendGroupMes(content)
+		default:
+			fmt.Println("输入有误")
+		}
 	case 3:
 		fmt.Println("消息列表")
 	case 4:
@@ -64,7 +81,9 @@ func serverProcessMes(conn net.Conn) {
 			updateUserStatus(&notifyUserStatusMes)
 			fmt.Println(notifyUserStatusMes.UserId, "上线了")
 		case message.SmsMesType:
-			outputGroupMes(&mes)
+			outputGroupMes(&mes, 1)
+		case message.SmsOnlineMesType:
+			outputGroupMes(&mes, 2)
 		default:
 			fmt.Println("服务器端返回了未知的消息类型")
 		}
